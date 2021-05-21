@@ -22,10 +22,10 @@ class EntryService @Autowired constructor(val entryRepository: EntryRepository,
         }
     }
 
-    fun addEntry(itemId: Long, entryPostBody: EntryPostBody): Long {
+    fun addEntry(itemId: Long, entryPostBody: EntryPostBody): ItemEntryDetails {
         val entry = entryRepository.save(Entry(null, itemId, StatusEnum.FOUND, entryPostBody.userName))
-        entryPhotoRepository.save(EntryPhoto(null, entry.id!!, entryPostBody.photo))
-        return entry.id
+        val photoEntry = entryPhotoRepository.save(EntryPhoto(null, entry.id!!, entryPostBody.photo))
+        return ItemEntryDetails(entry.id, entry.status.name, entry.userName, photoEntry.image)
     }
 
     fun editEntry(entryId: Long, status: StatusEnum) {

@@ -1,10 +1,7 @@
 package com.nerdery.scavengenerd.scavengenerd.controller
 
 import com.nerdery.scavengenerd.scavengenerd.enum.StatusEnum
-import com.nerdery.scavengenerd.scavengenerd.model.EntryPatchBody
-import com.nerdery.scavengenerd.scavengenerd.model.EntryPostBody
-import com.nerdery.scavengenerd.scavengenerd.model.ItemDetails
-import com.nerdery.scavengenerd.scavengenerd.model.ItemOverview
+import com.nerdery.scavengenerd.scavengenerd.model.*
 import com.nerdery.scavengenerd.scavengenerd.service.EntryService
 import com.nerdery.scavengenerd.scavengenerd.service.ItemService
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,9 +22,9 @@ class ScavengenerdController @Autowired constructor(val itemService: ItemService
     }
 
     @PostMapping("item/{itemId}")
-    fun addEntry(@PathVariable("itemId") itemId: Long, @RequestParam("photo") photo: MultipartFile, @RequestParam("userName") userName: String) {
+    fun addEntry(@PathVariable("itemId") itemId: Long, @RequestParam("photo") photo: MultipartFile, @RequestParam("userName") userName: String): ItemEntryDetails {
         val entryPostBody = EntryPostBody(userName, photo.bytes)
-        entryService.addEntry(itemId, entryPostBody)
+        return entryService.addEntry(itemId, entryPostBody)
     }
 
     @PatchMapping("entry/{entryId}")
