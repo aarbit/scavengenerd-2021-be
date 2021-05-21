@@ -18,7 +18,6 @@ open class ScavengenerdApplication {
             override fun addCorsMappings(registry: CorsRegistry) {
                 registry.addMapping("/**")
                     .allowedMethods("POST", "PUT", "GET", "OPTIONS", "DELETE","PATCH","HEAD")
-                    .allowedOrigins("http://localhost:8080")
             }
         }
     }
