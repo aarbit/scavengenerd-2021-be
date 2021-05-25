@@ -11,6 +11,7 @@ import com.nerdery.scavengenerd.scavengenerd.repository.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.awt.Dimension
 import java.awt.Image
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
@@ -116,12 +117,18 @@ class EntryService @Autowired constructor(val entryRepository: EntryRepository,
     private fun scaleDownImage(inputImage: ByteArray): ByteArray {
         val inStream = ByteArrayInputStream(inputImage)
         val buffIn = ImageIO.read(inStream)
-        val orgWidth = buffIn.width
-        val orgHeight = buffIn.height
-        val newWidth = 1000
-        val scale = orgWidth.div(newWidth)
-        val newHeight = orgHeight.div(scale)
-        val outBuff = resizeImage(buffIn, newWidth, newHeight, Image.SCALE_AREA_AVERAGING)
+        val newDimensions = if(buffIn.width < 1000) {
+            Dimension(buffIn.width, buffIn.height)
+        } else {
+            val orgWidth = buffIn.width
+            val orgHeight = buffIn.height
+            val newWidth = 1000
+            val scale = orgWidth.div(newWidth)
+            val newHeight = orgHeight.div(scale)
+            Dimension(newWidth, newHeight)
+        }
+
+        val outBuff = resizeImage(buffIn, newDimensions.width, newDimensions.height, Image.SCALE_AREA_AVERAGING)
         val outStream = ByteArrayOutputStream()
         ImageIO.write(outBuff, "jpg", outStream)
         return outStream.toByteArray()
