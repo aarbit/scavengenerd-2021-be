@@ -32,6 +32,11 @@ class ScavengenerdController @Autowired constructor(val itemService: ItemService
         return entryService.editEntry(entryId, status)
     }
 
+    @PatchMapping("entries")
+    fun submitEntries(@RequestBody body: List<Long>) {
+        return entryService.submitEntries(body)
+    }
+
     @DeleteMapping("entry/{entryId}")
     fun deleteEntry(@PathVariable("entryId") entryId: Long) {
         return entryService.deleteEntry(entryId)

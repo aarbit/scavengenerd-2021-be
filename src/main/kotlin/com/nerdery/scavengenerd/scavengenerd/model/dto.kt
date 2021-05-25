@@ -1,7 +1,5 @@
 package com.nerdery.scavengenerd.scavengenerd.model
 
-import com.nerdery.scavengenerd.scavengenerd.enum.StatusEnum
-
 data class ItemOverview(
     val id: Long,
     val name: String,
@@ -27,8 +25,4 @@ data class ItemEntryDetails(
 data class EntryPostBody(
     val userName: String,
     val photo: ByteArray
-)
-
-data class EntryPatchBody(
-    val status: StatusEnum
 )
