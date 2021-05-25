@@ -14,7 +14,9 @@ data class EntryPhoto(
     val id: Long? = null,
     val entryId: Long,
     @Lob
-    val image: ByteArray
+    val image: ByteArray,
+    @Lob
+    val smallImage: ByteArray
 )
 
 interface EntryPhotoRepository: JpaRepository<EntryPhoto, Long> {

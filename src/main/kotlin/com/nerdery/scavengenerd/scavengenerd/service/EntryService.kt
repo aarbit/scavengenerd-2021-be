@@ -1,7 +1,6 @@
 package com.nerdery.scavengenerd.scavengenerd.service
 
 import com.amazonaws.regions.Regions
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceAsyncClientBuilder
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder
 import com.amazonaws.services.simpleemail.model.RawMessage
 import com.amazonaws.services.simpleemail.model.SendRawEmailRequest
@@ -12,17 +11,21 @@ import com.nerdery.scavengenerd.scavengenerd.repository.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.awt.Image
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.*
 import javax.activation.DataHandler
-import javax.activation.DataSource
+import javax.imageio.ImageIO
 import javax.mail.Message
 import javax.mail.Session
 import javax.mail.internet.MimeBodyPart
 import javax.mail.internet.MimeMessage
 import javax.mail.internet.MimeMultipart
 import javax.mail.util.ByteArrayDataSource
+
 
 @Service
 class EntryService @Autowired constructor(val entryRepository: EntryRepository,
@@ -32,17 +35,15 @@ class EntryService @Autowired constructor(val entryRepository: EntryRepository,
         val entries = entryRepository.findByItem(itemId)
         return entries.map {
             val photo = entryPhotoRepository.findByEntryId(it.id!!)
-            ItemEntryDetails(it.id, it.status.name, it.userName, photo?.image?:ByteArray(0))
+            ItemEntryDetails(it.id, it.status.name, it.userName, photo?.smallImage?:photo?.image?:ByteArray(0))
         }
     }
 
     fun addEntry(itemId: Long, entryPostBody: EntryPostBody): ItemEntryDetails {
         val entry = entryRepository.save(Entry(null, itemId, StatusEnum.FOUND, entryPostBody.userName))
-        val photoEntry = entryPhotoRepository.save(EntryPhoto(null, entry.id!!, entryPostBody.photo))
-
-
-
-        return ItemEntryDetails(entry.id, entry.status.name, entry.userName, photoEntry.image)
+        val smallPhoto = scaleDownImage(entryPostBody.photo)
+        val photoEntry = entryPhotoRepository.save(EntryPhoto(null, entry.id!!, entryPostBody.photo, smallPhoto))
+        return ItemEntryDetails(entry.id, entry.status.name, entry.userName, photoEntry.smallImage)
     }
 
     fun submitEntries(entries: List<Long>) {
@@ -110,6 +111,27 @@ class EntryService @Autowired constructor(val entryRepository: EntryRepository,
         val rawMessage = RawMessage(ByteBuffer.wrap(outputStream.toByteArray()))
         val rawEmailRequest = SendRawEmailRequest(rawMessage)
         client.sendRawEmail(rawEmailRequest)
+    }
+
+    private fun scaleDownImage(inputImage: ByteArray): ByteArray {
+        val inStream = ByteArrayInputStream(inputImage)
+        val buffIn = ImageIO.read(inStream)
+        val orgWidth = buffIn.width
+        val orgHeight = buffIn.height
+        val newWidth = 1000
+        val scale = orgWidth.div(newWidth)
+        val newHeight = orgHeight.div(scale)
+        val outBuff = resizeImage(buffIn, newWidth, newHeight, Image.SCALE_AREA_AVERAGING)
+        val outStream = ByteArrayOutputStream()
+        ImageIO.write(outBuff, "jpg", outStream)
+        return outStream.toByteArray()
+    }
+
+    fun resizeImage(originalImage: BufferedImage, targetWidth: Int, targetHeight: Int, scaleType: Int): BufferedImage {
+        val resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, scaleType);
+        val outputImage = BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+        outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
+        return outputImage;
     }
 
 }
