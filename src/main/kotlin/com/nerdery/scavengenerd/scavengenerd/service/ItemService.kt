@@ -18,27 +18,14 @@ class ItemService @Autowired constructor(val itemRepository: ItemRepository,
                                          val entryService: EntryService) {
     fun getItems(): List<ItemOverview> {
         return itemRepository.findAll().map {
-            val entries = entryService.getEntriesForItem(it.id!!)
-            val itemStatus = calculateItemStatus(entries)
-            ItemOverview(it.id, it.name, it.tier.name, itemStatus.name)
+            ItemOverview(it.id!!, it.name, it.tier.name, it.cumulativeStatus?.name?:StatusEnum.NOT_FOUND.name)
         }
     }
 
     fun getItem(itemId: Long): ItemDetails? {
         return itemRepository.findByIdOrNull(itemId)?.let {
             val entries = entryService.getEntriesForItem(itemId)
-            val itemStatus = calculateItemStatus(entries)
-            ItemDetails(it.id!!, it.name, it.tier.name, itemStatus.name, entries)
-        }
-    }
-
-    private fun calculateItemStatus(entries: List<ItemEntryDetails>): StatusEnum {
-        val statusSet = entries.map { it.status }.toSet()
-        return when {
-            statusSet.contains(StatusEnum.APPROVED.name) -> StatusEnum.APPROVED
-            statusSet.contains(StatusEnum.SUBMITTED.name) -> StatusEnum.SUBMITTED
-            statusSet.contains(StatusEnum.FOUND.name) -> StatusEnum.FOUND
-            else -> StatusEnum.NOT_FOUND
+            ItemDetails(it.id!!, it.name, it.tier.name, it.cumulativeStatus?.name?:StatusEnum.NOT_FOUND.name, entries)
         }
     }
 }
